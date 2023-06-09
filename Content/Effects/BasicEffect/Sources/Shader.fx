@@ -4,40 +4,11 @@
 	[Directives:SpecularRadiance SR_OFF SR]
 	[Directives:Albedo DIFF_OFF DIFF]
 	[Directives:Normal NORMAL_OFF NORMAL]
+	[Directives:Normal PARALLAX_OFF PARALLAX]
 	[Directives:MetallicRoughnessAOTexture MRA_OFF MRA]
 	[Directives:ShadowSupported SHADOW_SUPPORTED_OFF SHADOW_SUPPORTED]
 	[Directives:ColorSpace GAMMA_COLORSPACE_OFF GAMMA_COLORSPACE]
 	
-	struct LightProperties
-	{
-		float3	Position;
-		float	Falloff;
-		float3	Color;
-		float	Intensity;
-		float3	Direction;	
-		float	ShadowBias;
-		float2	Scale;
-		uint	LightType;
-		float	Radius;
-		float3	Left;
-		int		ShadowMapIndex;
-		int 	ShadowMapResolution;
-		float	ShadowOpacity;
-		int		ShadowProjectionIndex;
-		int		DebugMode;
-		float4  Extra;
-	
-		inline bool IsCastingShadow()
-		{
-			return ShadowMapIndex != -1;	
-		}
-	
-		inline bool DebugModeEnabled()
-		{
-			return (DebugMode == 1);
-		}
-	};
-
 	cbuffer PerDrawCall : register(b0)
 	{
 		float4x4 WorldViewProj	: packoffset(c0);	[WorldViewProjection]
@@ -52,17 +23,18 @@
 	
 	cbuffer Parameters : register(b2)
 	{
-		float3 LightPosition		: packoffset(c0.x); [Default(0,0,1)]
-		float Metallic				: packoffset(c1.x); [Default(0)]
-		float Roughness				: packoffset(c1.y); [Default(0)]
-		float Reflectance			: packoffset(c1.z); [Default(0.3)]
-		float IrradiPerp 			: packoffset(c1.w); [Default(3)]
-		float3 BaseColor			: packoffset(c2.x); [Default(1,1,1)]
+		float3 SunDirection			: packoffset(c0.x); [SunDirection]
+		float3 SunColor				: packoffset(c1.x); [SunColor]
+		float Metallic				: packoffset(c2.x); [Default(0)]
+		float Roughness				: packoffset(c2.y); [Default(0)]
+		float Reflectance			: packoffset(c2.z); [Default(0.3)]
+		float IrradiPerp 			: packoffset(c2.w); [Default(3)]
+		float3 BaseColor			: packoffset(c3.x); [Default(1,1,1)]
 	};
 
 	Texture2D BaseTexture								: register(t0);
 	Texture2D MetallicRoughnessAOTexture     			: register(t1);
-	Texture2D NormalTexture								: register(t2);
+	Texture2D NormalHeightTexture						: register(t2);
 	TextureCube IBLRadianceTexture						: register(t3); [IBLRadiance]
 	TextureCube IBLIrradianceTexture					: register(t4); [IBLIrradiance]
 	Texture2DArray DirectionalShadowMap					: register(t5); [DirectionalShadowMap]
@@ -138,12 +110,16 @@
 			position = P;
 			normal = N;
 			viewVector = normalize(viewPos - P);
-			reflectVector = normalize(reflect(-viewVector, N));
+			reflectVector = 0;
 			NdotV = saturate(dot(N, viewPos));
 			AO = sAO;
 			metallic = smetallic;
 			roughness = sroughness * sroughness;
 			reflectance = sreflectance;
+			
+			#if SR
+			reflectVector = normalize(reflect(-viewVector, N));
+			#endif
 		}
 	};
 	
@@ -203,7 +179,7 @@
 		return pow(abs(color), 2.2);
 	}
 	
-	float3 LinearToGamma(const float3 color)
+	half3 LinearToGamma(const half3 color)
 	{
 		return pow(color, 1 / 2.2);
 	}
@@ -279,7 +255,7 @@
 		half3 normal = normalize(input.normal);
 		
 		#if NORMAL
-		half3 normalTex = NormalTexture.Sample(TextureSampler, input.texCoord).rgb * 2 - 1;
+		half3 normalTex = NormalHeightTexture.Sample(TextureSampler, input.texCoord).rgb * 2 - 1;
 		float3x3 tangentToWorld = float3x3(normalize(input.tangent), normalize(input.bitangent), normalize(input.normal));
 		normal = normalize(mul(normalTex, tangentToWorld));
 		#endif
@@ -299,14 +275,13 @@
 		Surface surface;
 		surface.Create(base,input.positionWS, normal, CameraPosition, metallic, roughness, AO, Reflectance);
 		
-		half3 lightDir = normalize(LightPosition - input.positionWS);
 		SurfaceToLight surface2light;
-		surface2light.Create(surface, lightDir);
+		surface2light.Create(surface, SunDirection);
 		
 		half3 diffuse = BRDFDiffuse(surface, surface2light);
 		half3 specular = BRDFSpecular(surface, surface2light);
 		
-		half3 color = diffuse + specular;
+		half3 color = (diffuse + specular) * SunColor;
 		
 		#if GAMMA_COLORSPACE
 		color = LinearToGamma(color);
