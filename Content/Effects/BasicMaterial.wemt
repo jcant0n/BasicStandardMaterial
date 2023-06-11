@@ -6,8 +6,9 @@ DefaultProfile:
   Platform: Undefined
 ExportAsRaw: false
 MaterialInfo:
-  Id: 9290dda4-f9db-4da1-8ff5-e6dbac671b8c
-  ActiveDirectives: []
+  Id: 9c698096-a5c1-49aa-b590-d2faa90cb63b
+  ActiveDirectives:
+    - SHADOW_SUPPORTED
   AllowInstancing: false
   EffectID: 6f099305-5dc0-4d1c-b8ab-5f238ff3e747
   Layer: 0db59561-b3f5-444f-b5de-e62e3a5b42bf
@@ -28,15 +29,18 @@ MaterialInfo:
     - Name: SunDirection
       Type: Evergine.Mathematics.Vector3,Evergine.Mathematics
       ValueByteArray: AAAAAAAAAAAAAAAA
+    - Name: HeightScale
+      Type: System.Single
+      ValueByteArray: j8L1PA==
     - Name: SunColor
       Type: Evergine.Mathematics.Vector3,Evergine.Mathematics
       ValueByteArray: AAAAAAAAAAAAAAAA
     - Name: Metallic
       Type: System.Single
-      ValueByteArray: icJ1Pw==
+      ValueByteArray: AAAAMw==
     - Name: Roughness
       Type: System.Single
-      ValueByteArray: sEfhPg==
+      ValueByteArray: y8xMPg==
     - Name: Reflectance
       Type: System.Single
       ValueByteArray: mpmZPg==
@@ -46,6 +50,12 @@ MaterialInfo:
     - Name: BaseColor
       Type: Evergine.Mathematics.Vector3,Evergine.Mathematics
       ValueByteArray: AACAPwAAgD8AAIA/
+    - Name: LightBufferCount
+      Type: System.UInt32
+      ValueByteArray: AAAAAA==
+    - Name: ShadowViewProjectionArray
+      Type: Evergine.Mathematics.Matrix4x4,Evergine.Mathematics
+      ValueByteArray: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
   Samplers:
     - ID: 00000000-0000-0000-0000-000000000000
       Name: null
@@ -56,6 +66,8 @@ MaterialInfo:
     - ID: 00000000-0000-0000-0000-000000000000
       Name: null
   Textures:
+    - ID: 00000000-0000-0000-0000-000000000000
+      Name: null
     - ID: 00000000-0000-0000-0000-000000000000
       Name: null
     - ID: 00000000-0000-0000-0000-000000000000
