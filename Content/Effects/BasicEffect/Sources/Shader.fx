@@ -31,6 +31,9 @@
 		float Reflectance			: packoffset(c2.z); [Default(0.3)]
 		float IrradiPerp 			: packoffset(c2.w); [Default(3)]
 		float3 BaseColor			: packoffset(c3.x); [Default(1,1,1)]
+		float Alpha					: packoffset(c3.w); [Default(1)]
+		float Exposure				: packoffset(c4.x); [CameraExposure]
+		float IblLuminance			: packoffset(c4.y); [IBLLuminance]
 	};
 
 	struct LightProperties
@@ -83,9 +86,12 @@
 	Texture2DArray DirectionalShadowMap					: register(t6); [DirectionalShadowMap]
 	
 	SamplerState TextureSampler							: register(s0);
-	SamplerState IBLRadianceSampler						: register(s1);
-	SamplerState IBLIrradianceSampler					: register(s2);
-	SamplerComparisonState DirectionalShadowMapSampler	: register(s3);	
+	SamplerState MetallicRoughnessAOSampler				: register(s1);
+	SamplerState NormalSampler							: register(s2);
+	SamplerState HeightSampler							: register(s3);
+	SamplerState IBLRadianceSampler						: register(s4);
+	SamplerState IBLIrradianceSampler					: register(s5);
+	SamplerComparisonState DirectionalShadowMapSampler	: register(s6);	
 	
 [End_ResourceLayout]
 
@@ -210,6 +216,7 @@
 		half3 fresnelTerm;
 		half VdotH;
 		half irradiance;
+		half shadowVisibility;
 		
 		inline void Create(in Surface surface, in half3 lightDir)
 		{
@@ -223,6 +230,7 @@
 			f0 = lerp(f0, surface.albedo, surface.metallic);
 			fresnelTerm = fresnelSchlick(VdotH, f0);
 			irradiance = max(dot(lightVector, surface.normal), 0.0) * IrradiPerp;
+			shadowVisibility = 1;
 		}
 	};
 
@@ -236,7 +244,7 @@
 		output.normal = mul(float4(input.normal, 0), World).xyz;
 		
 	#if NORMAL
-		output.tangent = mul(input.tangent, World).xyz;
+		output.tangent = mul(float4(input.tangent.xyz, 0), World).xyz;
 		output.bitangent = cross(output.normal, output.tangent) * input.tangent.w;
 	#endif
 		
@@ -288,11 +296,12 @@
 	
 	half3 BRDFSpecular(in Surface surface, in SurfaceToLight surface2light)
 	{
-		half3 radiacenSpecular = 0;
+		half3 radianceSpecular = 0;
 		
 	#if SR
 		float lod = IblMaxMipLevel * surface.roughness;
-		radiacenSpecular = IBLRadianceTexture.SampleLevel(IBLRadianceSampler, surface.reflectVector, lod).rgb;
+		radianceSpecular = IBLRadianceTexture.SampleLevel(IBLRadianceSampler, surface.reflectVector, lod).rgb;
+		radianceSpecular *= IblLuminance;
 	#endif
 		
 		half3 F = surface2light.fresnelTerm;
@@ -300,8 +309,9 @@
 		half G = G_Smith(surface.NdotV, surface2light.NdotL, surface.roughness);
 		
 		half3 specular = (D * G * F) / max(4.0 * surface.NdotV * surface2light.NdotL, 0.001);
+		specular *= surface2light.shadowVisibility * surface2light.irradiance;
 		
-		return specular + radiacenSpecular * surface.metallic;
+		return specular + radianceSpecular * surface.metallic;
 	}
 	
 	half3 BRDFDiffuse(in Surface surface, in SurfaceToLight surface2light)
@@ -311,12 +321,14 @@
 	#if DI
 		half3 diffuseIrradiance = IBLIrradianceTexture.Sample(IBLIrradianceSampler, surface.normal).rgb;
 		ambient = surface.albedo * surface.AO * diffuseIrradiance;
+		ambient *= IblLuminance;
 	#endif
 		
 		half3 rhoD = 1.0 - surface2light.fresnelTerm; // if not specular, use as diffuse
 		rhoD *= 1.0 - surface.metallic; // no diffuse for metals
 		
 		half3 diffuse = rhoD * surface.albedo / PI;
+		diffuse *= surface2light.shadowVisibility * surface2light.irradiance * SunColor;
 		
 		return ambient + diffuse;
 	}
@@ -360,12 +372,15 @@
 
 	float4 PS(PS_IN input) : SV_Target
 	{
+
+		float alpha = Alpha;
+		
 	#if DIFF || NORMAL || PARALLAX || MRA
 		half2 uv = input.texCoord;
 	#endif
 	
 	#if PARALLAX
-		half h = HeightTexture.Sample(TextureSampler, input.texCoord).r;
+		half h = HeightTexture.Sample(HeightSampler, input.texCoord).r;
 		
 		float3 viewDir = normalize(CameraPosition - input.positionWS);		
 		float2 offset = (h * HeightScale - (HeightScale / 2.0)) * (viewDir.xy / viewDir.z);
@@ -374,13 +389,15 @@
 	#endif
 		
 	#if DIFF
-		half3 base = GammaToLinear(BaseTexture.Sample(TextureSampler, uv).rgb);
+		half4 baseColor = BaseTexture.Sample(TextureSampler, uv);
+		half3 base = GammaToLinear(baseColor.rgb);
+		alpha *= baseColor.a;
 	#else
 		half3 base = BaseColor;
 	#endif
 		
 	#if NORMAL
-		half3 normalTex = NormalTexture.Sample(TextureSampler, uv).rgb * 2 - 1;
+		half3 normalTex = NormalTexture.Sample(NormalSampler, uv).rgb * 2 - 1;
 		float3x3 tangentToWorld = float3x3(normalize(input.tangent), normalize(input.bitangent), normalize(input.normal));
 		half3 normal = normalize(mul(normalTex, tangentToWorld));
 	#else
@@ -388,7 +405,7 @@
 	#endif
 		
 	#if MRA
-		half3 MetallicRoughnessAO = MetallicRoughnessAOTexture.Sample(TextureSampler, uv).xyz;
+		half3 MetallicRoughnessAO = MetallicRoughnessAOTexture.Sample(MetallicRoughnessAOSampler, uv).xyz;
 		
 		half metallic = MetallicRoughnessAO.x;
 		half roughness = MetallicRoughnessAO.y;
@@ -398,28 +415,28 @@
 		half roughness = Roughness;
 		half AO = 1;
 	#endif
-		
+
 		Surface surface;
 		surface.Create(base, input.positionWS, normal, CameraPosition, metallic, roughness, AO, Reflectance);
 		
 		SurfaceToLight surface2light;
 		surface2light.Create(surface, SunDirection);
 		
-		half3 diffuse = BRDFDiffuse(surface, surface2light);
-		half3 specular = BRDFSpecular(surface, surface2light);
-		half3 shadowVisibility = 1;
-		
 	#if SHADOW_SUPPORTED
-		shadowVisibility = ShadowCascade(surface, surface2light, input.depth);
+		surface2light.shadowVisibility = ShadowCascade(surface, surface2light, input.depth);
 	#endif
 		
-		half3 color = (diffuse + specular) * surface2light.irradiance * SunColor * shadowVisibility;
+		half3 diffuse = BRDFDiffuse(surface, surface2light);
+		half3 specular = BRDFSpecular(surface, surface2light);
+		
+		half3 color = (diffuse + specular) * Exposure;
+		color *= alpha;
 		
 	#if GAMMA_COLORSPACE
 		color = LinearToGamma(color);
 	#endif
 		
-		return float4(color, 1.0);
+		return float4(color, alpha);
 	}
 
 [End_Pass]
