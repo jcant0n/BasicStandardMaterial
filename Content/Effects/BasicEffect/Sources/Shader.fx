@@ -366,7 +366,7 @@
 			}
 		}
 		
-		//shadowTerm = saturate(shadowTerm + lightProperties.ShadowOpacity);
+		shadowTerm = saturate(shadowTerm + lightProperties.ShadowOpacity);
 		return shadowTerm;
 	}
 

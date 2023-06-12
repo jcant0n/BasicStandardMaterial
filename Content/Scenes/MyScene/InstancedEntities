@@ -115,7 +115,7 @@ Items:
           R: 0.932549953
         ShadowBias: 0.00499999989
         ShadowDistance: 80.0
-        ShadowOpacity: 1.0
+        ShadowOpacity: 0.918405652
         SplitDistance:
           - 0.0
           - 0.0
@@ -153,7 +153,7 @@ Items:
         Id: bb44cd62-4d92-418a-8a42-bbc2ed2b6f07
         AsignedTo: Default
         IsEnabled: true
-        Material: 44077a4c-7ab6-45a2-a2c3-2fe8558f722d
+        Material: 909aefe6-cd2f-4ca2-ba32-0879125bd687
         UseCopy: false
       - !Evergine.Components.Graphics3D.SphereMesh,Evergine.Components
         Id: 3ef37285-f016-4173-bbf0-278ec1624224
@@ -204,9 +204,9 @@ Items:
           Y: 0.152424172
           Z: 0.0
         LocalPosition:
-          X: 1.1235522
+          X: 0.966393352
           Y: 0.349727988
-          Z: -0.190104082
+          Z: 1.20239305
         LocalScale:
           X: 1.0
           Y: 1.0
@@ -288,9 +288,9 @@ Items:
           Y: 0.0
           Z: 0.0
         LocalPosition:
-          X: 0.0
+          X: 0.773383498
           Y: 0.0
-          Z: 0.0
+          Z: 9.21943624E-08
         LocalScale:
           X: 10.0
           Y: 10.0
