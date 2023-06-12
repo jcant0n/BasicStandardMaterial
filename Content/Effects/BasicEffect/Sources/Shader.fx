@@ -407,9 +407,9 @@
 	#if MRA
 		half3 MetallicRoughnessAO = MetallicRoughnessAOTexture.Sample(MetallicRoughnessAOSampler, uv).xyz;
 		
-		half metallic = MetallicRoughnessAO.x;
+		half metallic = MetallicRoughnessAO.z;
 		half roughness = MetallicRoughnessAO.y;
-		half AO = MetallicRoughnessAO.z;
+		half AO = MetallicRoughnessAO.x;
 	#else
 		half metallic = Metallic;
 		half roughness = Roughness;
