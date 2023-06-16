@@ -21,19 +21,23 @@
 		uint IblMaxMipLevel			: packoffset(c0.w); [IBLMipMapLevel]
 	}
 	
-	cbuffer Parameters : register(b2)
+	cbuffer PerFrame: register(b2)
 	{
 		float3 SunDirection			: packoffset(c0.x); [SunDirection]
-		float HeightScale			: packoffset(c0.w); [Default(0.03)]
-		float3 SunColor				: packoffset(c1.x); [SunColor]
-		float Metallic				: packoffset(c1.w); [Default(0)]
-		float Roughness				: packoffset(c2.x); [Default(0)]
-		float Reflectance			: packoffset(c2.y); [Default(0.3)]
-		float IrradiPerp 			: packoffset(c2.z); [Default(3)]
-		float Alpha					: packoffset(c2.w); [Default(1)]
-		float3 BaseColor			: packoffset(c3.x); [Default(1,1,1)]
-		float Exposure				: packoffset(c3.w); [CameraExposure]
-		float IblLuminance			: packoffset(c4.x); [IBLLuminance]
+		float Exposure				: packoffset(c0.w); [CameraExposure]
+		float3 SunColor				: packoffset(c1.x); [SunColor]				
+		float IblLuminance			: packoffset(c1.w); [IBLLuminance]
+	};
+	
+	cbuffer Parameters : register(b3)
+	{	
+		float3 BaseColor			: packoffset(c0.x); [Default(1,1,1)]
+		float HeightScale			: packoffset(c0.w); [Default(0.03)]	
+		float Metallic				: packoffset(c1.x); [Default(0)]
+		float Roughness				: packoffset(c1.y); [Default(0)]
+		float Reflectance			: packoffset(c1.z); [Default(0.3)]
+		float IrradiPerp 			: packoffset(c1.w); [Default(3)]
+		float Alpha					: packoffset(c2.x); [Default(1)]		
 	};
 
 	struct LightProperties
@@ -55,7 +59,7 @@
 		int		DebugMode;
 		float4  Extra;
 	
-		inline bool IsCastingShadow()
+		inline bool IsCastingShadow() 
 		{
 			return ShadowMapIndex != -1;	
 		}
@@ -66,13 +70,13 @@
 		}
 	};
 	
-	cbuffer LightBuffer : register(b3)
+	cbuffer LightBuffer : register(b4)
 	{
 		uint LightBufferCount		: packoffset(c0.x); [LightCount]
 		LightProperties Lights[64]	: packoffset(c1.x); [LightBuffer]
 	};
 	
-	cbuffer ShadowMapViewBuffer : register (b4)
+	cbuffer ShadowMapViewBuffer : register (b5)
 	{
 		float4x4 ShadowViewProjectionArray[64] : packoffset(c0.x); [ShadowViewProjectionBuffer]
 	};
