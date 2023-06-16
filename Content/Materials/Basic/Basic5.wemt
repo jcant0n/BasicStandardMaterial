@@ -1,15 +1,17 @@
 !Evergine.Assets.Exporters.MaterialMetaFile,Evergine.Assets
-Id: 69cd2c56-5dc9-48ad-a7e1-37ede7edc3ce
+Id: 1050f514-37ff-4ea4-8779-766b9d01802b
 DefaultProfile:
   ExcludeAsset: false
   Name: null
   Platform: Undefined
 ExportAsRaw: false
 MaterialInfo:
-  Id: ac686ed7-b241-4758-a968-82503b745845
+  Id: bb865077-275f-43a0-907e-5855801f30aa
   ActiveDirectives:
     - DI
-    - SHADOW_SUPPORTED
+    - DIFF
+    - NORMAL
+    - SR
   AllowInstancing: false
   EffectID: 6f099305-5dc0-4d1c-b8ab-5f238ff3e747
   Layer: 0db59561-b3f5-444f-b5de-e62e3a5b42bf
@@ -44,16 +46,16 @@ MaterialInfo:
       ValueByteArray: qkdhPg==
     - Name: Reflectance
       Type: System.Single
-      ValueByteArray: AAAAAA==
+      ValueByteArray: mpmZPg==
     - Name: IrradiPerp
       Type: System.Single
       ValueByteArray: AABAQA==
-    - Name: Alpha
-      Type: System.Single
-      ValueByteArray: AACAPw==
     - Name: BaseColor
       Type: Evergine.Mathematics.Vector3,Evergine.Mathematics
       ValueByteArray: AACAPwAAgD8AAIA/
+    - Name: Alpha
+      Type: System.Single
+      ValueByteArray: AACAPw==
     - Name: Exposure
       Type: System.Single
       ValueByteArray: AAAAAA==
@@ -82,12 +84,12 @@ MaterialInfo:
     - ID: 00000000-0000-0000-0000-000000000000
       Name: null
   Textures:
+    - ID: 73609a4f-0864-48c3-9522-3351e3b9ee5a
+      Name: BaseTexture
     - ID: 00000000-0000-0000-0000-000000000000
       Name: null
-    - ID: 00000000-0000-0000-0000-000000000000
-      Name: null
-    - ID: 00000000-0000-0000-0000-000000000000
-      Name: null
+    - ID: bab2d408-145f-4ca4-9aa9-9221af25d160
+      Name: NormalTexture
     - ID: 00000000-0000-0000-0000-000000000000
       Name: null
     - ID: 00000000-0000-0000-0000-000000000000

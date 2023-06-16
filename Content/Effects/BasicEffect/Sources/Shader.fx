@@ -26,14 +26,14 @@
 		float3 SunDirection			: packoffset(c0.x); [SunDirection]
 		float HeightScale			: packoffset(c0.w); [Default(0.03)]
 		float3 SunColor				: packoffset(c1.x); [SunColor]
-		float Metallic				: packoffset(c2.x); [Default(0)]
-		float Roughness				: packoffset(c2.y); [Default(0)]
-		float Reflectance			: packoffset(c2.z); [Default(0.3)]
-		float IrradiPerp 			: packoffset(c2.w); [Default(3)]
+		float Metallic				: packoffset(c1.w); [Default(0)]
+		float Roughness				: packoffset(c2.x); [Default(0)]
+		float Reflectance			: packoffset(c2.y); [Default(0.3)]
+		float IrradiPerp 			: packoffset(c2.z); [Default(3)]
+		float Alpha					: packoffset(c2.w); [Default(1)]
 		float3 BaseColor			: packoffset(c3.x); [Default(1,1,1)]
-		float Alpha					: packoffset(c3.w); [Default(1)]
-		float Exposure				: packoffset(c4.x); [CameraExposure]
-		float IblLuminance			: packoffset(c4.y); [IBLLuminance]
+		float Exposure				: packoffset(c3.w); [CameraExposure]
+		float IblLuminance			: packoffset(c4.x); [IBLLuminance]
 	};
 
 	struct LightProperties
